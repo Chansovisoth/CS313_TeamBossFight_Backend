@@ -1,4 +1,4 @@
-import { Boss, Category } from "../models/index.js";
+import { Boss } from "../models/index.js";
 
 const getAllBosses = async (req, res) => {
   try {

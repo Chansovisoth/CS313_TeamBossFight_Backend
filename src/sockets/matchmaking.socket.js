@@ -5,7 +5,7 @@ import Boss from "../models/boss.model.js";
 const matchmakingQueue = new Map(); // Map<bossId, Set<socketId>>
 const playerSessions = new Map(); // Map<socketId, playerData>
 
-const handleMatchmaking = (io, socket) => {
+export const handleMatchmaking = (io, socket) => {
   socket.on("matchmaking:find", async (data) => {
     try {
       const { joinCode, nickname, userId } = data;
@@ -360,5 +360,3 @@ export const getPlayerFromSocket = (socketId) => {
 export const removePlayerFromAllQueues = (socketId) => {
   handleMatchmakingDisconnect(socketId);
 };
-
-export default handleMatchmaking;

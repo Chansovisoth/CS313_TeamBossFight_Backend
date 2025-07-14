@@ -1,9 +1,9 @@
-import eventBoss from "../models/event_boss.model.js";
+import { EventBoss } from "../models/index.js";
 import { generateUniqueJoinCode } from "../utils/generateJoinCode.js";
 
 const getAllEventBosses = async (req, res) => {
   try {
-    const bosses = await eventBoss.findAll();
+    const bosses = await EventBoss.findAll();
     res.status(200).json(bosses);
   } catch (error) {
     console.error("Error fetching event bosses:", error);
@@ -14,7 +14,7 @@ const getAllEventBosses = async (req, res) => {
 const getEventBossById = async (req, res) => {
   const { id } = req.params;
   try {
-    const boss = await eventBoss.findByPk(id);
+    const boss = await EventBoss.findByPk(id);
     if (!boss) {
       return res.status(404).json({ message: "Event boss not found" });
     }
@@ -31,7 +31,7 @@ const createEventBoss = async (req, res) => {
   try {
     const joinCode = await generateUniqueJoinCode();
 
-    const newEventBoss = await eventBoss.create({
+    const newEventBoss = await EventBoss.create({
       eventId,
       bossId,
       joinCode,
@@ -49,7 +49,7 @@ const updateEventBoss = async (req, res) => {
   const { eventId, bossId, userId } = req.body;
 
   try {
-    const eventBossEntry = await eventBoss.findByPk(id);
+    const eventBossEntry = await EventBoss.findByPk(id);
     if (!eventBossEntry) {
       return res.status(404).json({ message: "Event boss not found" });
     }
@@ -70,7 +70,7 @@ const deleteEventBoss = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const eventBossEntry = await eventBoss.findByPk(id);
+    const eventBossEntry = await EventBoss.findByPk(id);
     if (!eventBossEntry) {
       return res.status(404).json({ message: "Event boss not found" });
     }

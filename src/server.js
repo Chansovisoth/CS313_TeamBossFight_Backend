@@ -11,6 +11,7 @@ import categoryRoutes from "./routes/category.routes.js";
 import bossRoutes from "./routes/boss.routes.js";
 import eventBossRoutes from "./routes/event_boss.routes.js";
 import joinRoutes from "./routes/join.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use(express.json());
 //   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 //   next();
 // });
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/categories", categoryRoutes);

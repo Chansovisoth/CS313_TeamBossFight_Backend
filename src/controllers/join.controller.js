@@ -1,5 +1,4 @@
-import EventBoss from "../models/event_boss.model.js";
-import Boss from "../models/boss.model.js";
+import { EventBoss, Boss } from "../models/index.js";
 import PRNG from "../utils/prng.js";
 import crypto from "crypto";
 
