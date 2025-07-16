@@ -3,11 +3,13 @@ import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
 import { handleMatchmaking } from "./sockets/matchmaking.socket.js";
 import userRoutes from "./routes/user.routes.js";
 import eventRoutes from "./routes/event.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
+import questionRoutes from "./routes/question.routes.js";
 import bossRoutes from "./routes/boss.routes.js";
 import eventBossRoutes from "./routes/event_boss.routes.js";
 import joinRoutes from "./routes/join.routes.js";
@@ -29,6 +31,7 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cookieParser()); // Add cookie-parser middleware
 // app.use((req, res, next) => {
 //   res.header("Access-Control-Allow-Origin", "*");
 //   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -38,6 +41,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/questions", questionRoutes);
 app.use("/api/bosses", bossRoutes);
 app.use("/api/event-bosses", eventBossRoutes);
 app.use("/api/join", joinRoutes);

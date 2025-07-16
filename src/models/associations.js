@@ -43,6 +43,10 @@ Leaderboard.belongsTo(User, {
 User.hasMany(Question, { foreignKey: "authorId", as: "createdQuestions" });
 Question.belongsTo(User, { foreignKey: "authorId", as: "creator" });
 
+// User and Category associations
+User.hasMany(Category, { foreignKey: "creatorId", as: "createdCategories" });
+Category.belongsTo(User, { foreignKey: "creatorId", as: "creator" });
+
 // EventBoss and Event associations
 Event.hasMany(EventBoss, { foreignKey: "eventId", as: "eventBosses" });
 EventBoss.belongsTo(Event, {
