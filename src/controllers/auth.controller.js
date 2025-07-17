@@ -91,6 +91,7 @@ const login = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
+        profileImage: user.profileImage,
       }
     });
   } catch (error) {
@@ -113,6 +114,7 @@ const me = async (req, res) => {
       username: user.username,
       email: user.email,
       role: user.role,
+      profileImage: user.profileImage,
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
