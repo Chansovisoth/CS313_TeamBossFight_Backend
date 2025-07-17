@@ -40,6 +40,7 @@ app.use(cookieParser()); // Add cookie-parser middleware
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // app.use((req, res, next) => {
 //   res.header("Access-Control-Allow-Origin", "*");

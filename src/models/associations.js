@@ -85,9 +85,9 @@ PlayerSession.belongsTo(BossSession, {
 // Boss and Category associations
 Boss.belongsToMany(Category, {
   through: "boss_categories",
-  foreignKey: "boosId",
+  foreignKey: "bossId",
   otherKey: "categoryId",
-  as: "categories",
+  as: "Categories",
 });
 Category.belongsToMany(Boss, {
   through: "boss_categories",

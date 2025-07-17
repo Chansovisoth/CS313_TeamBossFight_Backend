@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../../uploads');
 const profilesDir = path.join(uploadsDir, 'profiles');
+const bossesDir = path.join(uploadsDir, 'bosses');
 
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -18,8 +19,12 @@ if (!fs.existsSync(profilesDir)) {
   fs.mkdirSync(profilesDir, { recursive: true });
 }
 
-// Configure storage
-const storage = multer.diskStorage({
+if (!fs.existsSync(bossesDir)) {
+  fs.mkdirSync(bossesDir, { recursive: true });
+}
+
+// Configure storage for profiles
+const profileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, profilesDir);
   },
@@ -28,6 +33,19 @@ const storage = multer.diskStorage({
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const extension = path.extname(file.originalname);
     cb(null, `profile-${uniqueSuffix}${extension}`);
+  }
+});
+
+// Configure storage for boss images
+const bossStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, bossesDir);
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const extension = path.extname(file.originalname);
+    cb(null, `boss-${uniqueSuffix}${extension}`);
   }
 });
 
@@ -44,15 +62,25 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Configure multer
-const upload = multer({
-  storage: storage,
+// Configure multer for profiles
+const profileUpload = multer({
+  storage: profileStorage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: fileFilter
 });
 
-export const uploadProfileImage = upload.single('profileImage');
+// Configure multer for boss images
+const bossUpload = multer({
+  storage: bossStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: fileFilter
+});
 
-export default upload;
+export const uploadProfileImage = profileUpload.single('profileImage');
+export const uploadBossImage = bossUpload.single('image');
+
+export default { profileUpload, bossUpload };

@@ -1,4 +1,4 @@
-import { Question, Category } from "../models/index.js";
+import { Question, Category, Boss } from "../models/index.js";
 
 /**
  * Middleware to check if the user owns the question resource or is an admin
@@ -73,6 +73,40 @@ export function checkCategoryOwnership(req, res, next) {
 }
 
 /**
+ * Middleware to check if the user owns the boss resource or is an admin
+ */
+export async function checkBossOwnership(req, res, next) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    // Admins can access all bosses
+    if (userRole === 'admin') {
+      return next();
+    }
+
+    // Find the boss and check ownership
+    const boss = await Boss.findByPk(id);
+    if (!boss) {
+      return res.status(404).json({ message: "Boss not found" });
+    }
+
+    // Check if user owns the boss
+    if (boss.creatorId !== userId) {
+      return res.status(403).json({ 
+        message: "Forbidden: You can only manage your own bosses" 
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error checking boss ownership:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+/**
  * Middleware to filter questions based on user role
  * Hosts and admins can see all questions, but hosts can only edit their own
  */
@@ -89,5 +123,24 @@ export function getQuestionFilter(req, res, next) {
 export function getCategoryFilter(req, res, next) {
   // Both hosts and admins can see all categories
   req.categoryFilter = {};
+  next();
+}
+
+/**
+ * Middleware to filter bosses based on user role
+ * Hosts can only see their own bosses, admins can see all
+ */
+export function getBossFilter(req, res, next) {
+  const userRole = req.user.role;
+  const userId = req.user.id;
+
+  if (userRole === 'admin') {
+    // Admins can see all bosses
+    req.bossFilter = {};
+  } else {
+    // Hosts can only see their own bosses
+    req.bossFilter = { creatorId: userId };
+  }
+  
   next();
 }
