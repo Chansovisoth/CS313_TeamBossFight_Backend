@@ -13,6 +13,7 @@ const sequelize = new Sequelize(
     charset: process.env.DB_CHARSET || "utf8mb4",
     collate: process.env.DB_COLLATION || "utf8mb4_general_ci",
     logging: false,
+    timezone: process.env.DB_TIMEZONE || "+07:00",
   }
 );
 
