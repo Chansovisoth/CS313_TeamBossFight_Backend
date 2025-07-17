@@ -66,7 +66,7 @@ const login = async (req, res) => {
     const accessToken = jwt.sign(
       { id: user.id, email: user.email, role: user.role }, 
       process.env.JWT_SECRET || 'secret', 
-      { expiresIn: '1m' } // Short-lived access token
+      { expiresIn: '30m' } // Short-lived access token
     );
     
     const refreshToken = jwt.sign(
@@ -146,7 +146,7 @@ const refresh = async (req, res) => {
     const newAccessToken = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'secret',
-      { expiresIn: '1m' }
+      { expiresIn: '30m' }
     );
 
     res.json({

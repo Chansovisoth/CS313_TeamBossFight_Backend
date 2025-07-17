@@ -1,15 +1,18 @@
 import express from "express";
 import userController from "../controllers/user.controller.js";
 import { authenticateToken, authorizeRoles } from "../middleware/auth.js";
+import { uploadProfileImage } from "../middleware/upload.js";
 
 const router = express.Router();
 
-// Protect all user management routes - Admin only
-router.use(authenticateToken, authorizeRoles('admin'));
+// Profile routes (authenticated users can access their own profile)
+router.get("/profile", authenticateToken, userController.getProfile);
+router.put("/profile", authenticateToken, uploadProfileImage, userController.updateProfile);
 
-router.get("/", userController.getAllUsers);
-router.get("/:id", userController.getUserById);
-router.put("/:id", userController.updateUser);
-router.delete("/:id", userController.deleteUser);
+// Admin-only user management routes
+router.get("/", authenticateToken, authorizeRoles('admin'), userController.getAllUsers);
+router.get("/:id", authenticateToken, authorizeRoles('admin'), userController.getUserById);
+router.put("/:id", authenticateToken, authorizeRoles('admin'), userController.updateUser);
+router.delete("/:id", authenticateToken, authorizeRoles('admin'), userController.deleteUser);
 
 export default router;

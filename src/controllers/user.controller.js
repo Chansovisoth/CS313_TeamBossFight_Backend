@@ -1,5 +1,12 @@
 import { User } from "../models/index.js";
 import { Op } from "sequelize";
+import bcrypt from "bcryptjs";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const getAllUsers = async (req, res) => {
   try {
@@ -8,8 +15,8 @@ const getAllUsers = async (req, res) => {
 
     const whereClause = search ? {
       [Op.or]: [
-        { username: { [Op.iLike]: `%${search}%` } },
-        { email: { [Op.iLike]: `%${search}%` } }
+        { username: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } }
       ]
     } : {};
 
@@ -145,9 +152,112 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Get current user profile
+const getProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'username', 'email', 'role', 'profileImage', 'createdAt', 'updatedAt']
+    });
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    res.status(500).json({ message: "Error fetching profile", error: error.message });
+  }
+};
+
+// Update current user profile
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { username, email, password } = req.body;
+    
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if username is already taken by another user
+    if (username && username !== user.username) {
+      const existingUser = await User.findOne({ 
+        where: { 
+          username, 
+          id: { [Op.ne]: userId } 
+        } 
+      });
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already taken" });
+      }
+    }
+
+    // Check if email is already taken by another user
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ 
+        where: { 
+          email, 
+          id: { [Op.ne]: userId } 
+        } 
+      });
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already taken" });
+      }
+    }
+
+    // Prepare update data
+    const updateData = {};
+    if (username) updateData.username = username;
+    if (email) updateData.email = email;
+    
+    // Hash password if provided
+    if (password && password.trim() !== '') {
+      if (password.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters long" });
+      }
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    // Handle profile picture upload
+    if (req.file) {
+      // Delete old profile picture if it exists
+      if (user.profileImage) {
+        const oldImagePath = path.join(__dirname, '../../uploads/profiles', path.basename(user.profileImage));
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
+      
+      // Set new profile picture path
+      updateData.profileImage = `/uploads/profiles/${req.file.filename}`;
+    }
+
+    await user.update(updateData);
+
+    // Return updated user without password
+    const updatedUser = await User.findByPk(userId, {
+      attributes: ['id', 'username', 'email', 'role', 'profileImage', 'createdAt', 'updatedAt']
+    });
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Error updating profile", error: error.message });
+  }
+};
+
 export default {
   getAllUsers,
   getUserById,
   updateUser,
   deleteUser,
+  getProfile,
+  updateProfile,
 };
