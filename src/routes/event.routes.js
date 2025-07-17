@@ -21,4 +21,7 @@ router.delete("/:id", authorizeRoles('admin'), checkEventOwnership, eventControl
 router.post("/:id/bosses", eventController.assignBossesToEvent);
 router.delete("/:id/bosses/:bossId", eventController.unassignBossFromEvent);
 
+// QR code generation route
+router.get("/:id/bosses/:bossId/qr", eventController.generateBossQRCode);
+
 export default router;
