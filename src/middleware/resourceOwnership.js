@@ -1,4 +1,4 @@
-import { Question, Category, Boss } from "../models/index.js";
+import { Question, Category, Boss, Event } from "../models/index.js";
 
 /**
  * Middleware to check if the user owns the question resource or is an admin
@@ -107,6 +107,40 @@ export async function checkBossOwnership(req, res, next) {
 }
 
 /**
+ * Middleware to check if the user owns the event resource or is an admin
+ */
+export async function checkEventOwnership(req, res, next) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    // Admins can access all events
+    if (userRole === 'admin') {
+      return next();
+    }
+
+    // Find the event and check ownership
+    const event = await Event.findByPk(id);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Check if user owns the event
+    if (event.creatorId !== userId) {
+      return res.status(403).json({ 
+        message: "Forbidden: You can only manage your own events" 
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error checking event ownership:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+/**
  * Middleware to filter questions based on user role
  * Hosts and admins can see all questions, but hosts can only edit their own
  */
@@ -142,5 +176,15 @@ export function getBossFilter(req, res, next) {
     req.bossFilter = { creatorId: userId };
   }
   
+  next();
+}
+
+/**
+ * Middleware to filter events based on user role
+ * All users can see all events, but only admins can create/edit/delete
+ */
+export function getEventFilter(req, res, next) {
+  // Both hosts and admins can see all events
+  req.eventFilter = {};
   next();
 }
