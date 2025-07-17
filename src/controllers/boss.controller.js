@@ -1,6 +1,11 @@
 import { Boss, Category, User } from "../models/index.js";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
+
+// ES modules equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const getAllBosses = async (req, res) => {
   try {
@@ -181,11 +186,18 @@ const updateBoss = async (req, res) => {
       // Delete old image if it exists
       if (boss.image) {
         const oldImagePath = path.join(__dirname, '../../uploads/bosses', boss.image);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+        try {
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+            console.log(`Old boss image deleted: ${oldImagePath}`);
+          }
+        } catch (deleteError) {
+          console.error(`Error deleting old boss image: ${deleteError.message}`);
+          // Continue with update even if old image deletion fails
         }
       }
       boss.image = req.file.filename; // Store just the filename
+      console.log(`New boss image set: ${req.file.filename}`);
     }
     
     // Update boss fields
@@ -254,8 +266,14 @@ const deleteBoss = async (req, res) => {
     // Delete associated image file if it exists
     if (boss.image) {
       const imagePath = path.join(__dirname, '../../uploads/bosses', boss.image);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
+      try {
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+          console.log(`Boss image deleted: ${imagePath}`);
+        }
+      } catch (deleteError) {
+        console.error(`Error deleting boss image: ${deleteError.message}`);
+        // Continue with boss deletion even if image deletion fails
       }
     }
     
