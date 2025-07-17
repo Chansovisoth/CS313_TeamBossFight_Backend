@@ -20,6 +20,8 @@ import eventBossRoutes from "./routes/event_boss.routes.js";
 import joinRoutes from "./routes/join.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 
+import "./schedulers/event-status-updater.js";
+
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
