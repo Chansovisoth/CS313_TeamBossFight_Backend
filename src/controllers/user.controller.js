@@ -1,6 +1,6 @@
 import { User } from "../models/index.js";
 import { Op } from "sequelize";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from 'url';
