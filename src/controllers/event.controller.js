@@ -1,5 +1,7 @@
 import { Event, User, Boss, EventBoss } from "../models/index.js";
 import { Op } from "sequelize";
+import { generateUniqueJoinCode } from "../utils/generateJoinCode.js";
+import { generateBossJoinQRCode } from "../utils/qrCodeGenerator.js";
 
 // Helper function to update event status based on current time
 const updateEventStatus = (event) => {
@@ -312,12 +314,21 @@ const assignBossesToEvent = async (req, res) => {
       }
     }
 
-    // Create EventBoss entries for each boss
-    const eventBossData = bossIds.map(bossId => ({
-      eventId,
-      bossId,
-      joinCode: generateJoinCode() // We'll need to implement this
-    }));
+    // Create EventBoss entries for each boss with unique join codes
+    const eventBossData = [];
+    for (const bossId of bossIds) {
+      try {
+        const joinCode = await generateUniqueJoinCode();
+        eventBossData.push({
+          eventId,
+          bossId,
+          joinCode
+        });
+      } catch (error) {
+        console.error(`Error generating join code for boss ${bossId}:`, error);
+        return res.status(500).json({ message: "Failed to generate unique join codes" });
+      }
+    }
 
     // Check for existing assignments to prevent duplicates
     const existingAssignments = await EventBoss.findAll({
@@ -413,14 +424,58 @@ const unassignBossFromEvent = async (req, res) => {
   }
 };
 
-// Helper function to generate unique join codes
-const generateJoinCode = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+// QR Code generation function
+const generateBossQRCode = async (req, res) => {
+  const { id: eventId, bossId } = req.params;
+
+  try {
+    // Find the event boss assignment
+    const eventBoss = await EventBoss.findOne({
+      where: { eventId, bossId },
+      include: [
+        {
+          model: Boss,
+          as: "boss",
+          attributes: ['id', 'name', 'creatorId'],
+          include: [
+            {
+              model: User,
+              as: "creator",
+              attributes: ['id', 'username']
+            }
+          ]
+        }
+      ]
+    });
+
+    if (!eventBoss) {
+      return res.status(404).json({ message: "Boss assignment not found" });
+    }
+
+    // Check permissions: hosts can only generate QR codes for their own bosses, admins can generate for any
+    if (req.user.role === 'host' && eventBoss.boss.creatorId !== req.user.id) {
+      return res.status(403).json({ 
+        message: "You can only generate QR codes for bosses you created" 
+      });
+    }
+
+    // Generate QR code data URL
+    const qrCodeDataURL = await generateBossJoinQRCode(eventBoss.joinCode);
+
+    res.status(200).json({
+      message: "QR code generated successfully",
+      qrCode: qrCodeDataURL,
+      joinCode: eventBoss.joinCode,
+      boss: {
+        id: eventBoss.boss.id,
+        name: eventBoss.boss.name,
+        creator: eventBoss.boss.creator.username
+      }
+    });
+  } catch (error) {
+    console.error("Error generating QR code:", error);
+    res.status(500).json({ message: "Failed to generate QR code" });
   }
-  return result;
 };
 
 export default {
@@ -430,5 +485,6 @@ export default {
   updateEvent,
   deleteEvent,
   assignBossesToEvent,
-  unassignBossFromEvent
+  unassignBossFromEvent,
+  generateBossQRCode
 };
